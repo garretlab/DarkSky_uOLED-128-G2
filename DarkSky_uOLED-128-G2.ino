@@ -3,7 +3,7 @@
 #include "JsonListener.h"
 #include "DarkskyParser.h"
 
-DarkskyParser dlParser;
+DarkskyParser dsParser;
 
 HardwareSerial Serial2(2);
 GOLDELOX oled(&Serial2);
@@ -16,13 +16,13 @@ const char *latitude = "YOURLATITUDE";
 const char *longitude = "YOURLONGITUDE";
 
 int weatherInnerColor[] = {
-  0xfc44, 0xf7a6, 0x32b4, 0xffde, 0xf79e, 0xffff,
+  0xfc44, 0xf7a6, 0x8e1e, 0xffde, 0xf79e, 0xffff,
   0xffff, 0x6bf1, 0x6bf1, 0x6bf1, 0x0000, 0x19ad,
 };
 
 int weatherOuterColor[] = {
-  0xf800, 0xe7ea, 0x21ab, 0xe77e, 0xe77e, 0xe77e,
-  0xe77e, 0x39e9, 0x39e9, 0x39e9, 0x1111, 0x0867,
+  0xf800, 0xe7ea, 0x19ad, 0xe77e, 0xe77e, 0xe77e,
+  0xe77e, 0x39e9, 0x39e9, 0x39e9, 0x1111, 0x8e1e,
 };
 
 struct {
@@ -35,56 +35,61 @@ struct {
 
 void printInfo(void *arg) {
   struct tm timeInfo;
+  int needUpdate;
   char s[9];
 
   while (1) {
+    static time_t lastUpdate = 0;
     int colorIndex;
 
-    oled.textForegroundColor(0xffff);
-
+    // needUpdate = (dsParser.lastUpdate == 0) || (lastUpdate <= (dsParser.lastUpdate + 5));
+    needUpdate = lastUpdate <= (dsParser.lastUpdate + 5);
     getLocalTime(&timeInfo);
     sprintf(s, "%02d:%02d:%02d", timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
+    oled.textForegroundColor(0xffff);
     oled.moveCursor(5, 7);
     oled.putString(s);
-    oled.moveCursor(6, 5);
-    sprintf(s, "%5.1fC", dlParser.weatherData[0].temperature);
-    oled.putString(s);
-    oled.moveCursor(6, 9);
-    sprintf(s, "%5.1f%%", dlParser.weatherData[0].humidity);
-    oled.putString(s);
-
-    for (int i = 0, j = 0; i < 13; i++) {
+    if (needUpdate) {
+      oled.moveCursor(6, 5);
+      sprintf(s, "%5.1fC", dsParser.weatherData[0].temperature);
+      oled.putString(s);
+      oled.moveCursor(6, 9);
+      sprintf(s, "%5.1f%%", dsParser.weatherData[0].humidity);
+      oled.putString(s);
+    }
+    for (int i = 0, pos = dsParser.currentHour; i < 13; i++) {
       if (i == 1) {
         continue;
       }
 
-      if ((dlParser.weatherData[j].weather == 2) && (dlParser.weatherData[j].precipIntensity > 3)) {
+      if ((dsParser.weatherData[i].weather == 2) && (dsParser.weatherData[i].precipIntensity > 3)) {
         colorIndex = 11;
       } else {
-        colorIndex = dlParser.weatherData[j].weather;
+        colorIndex = dsParser.weatherData[i].weather;
       }
 
-      int index = j + dlParser.currentHour;
-      if (j == 0) { /* current hour */
-        oled.drawFilledCircle(coordinate[index % 12].x, coordinate[index % 12].y,
-                              9, weatherInnerColor[colorIndex]);
+      if (needUpdate) {
+        oled.drawFilledCircle(coordinate[pos % 12].x, coordinate[pos % 12].y, 9, weatherInnerColor[colorIndex]);
+      }
+      if (i == 0) { /* current hour */
         if (timeInfo.tm_sec % 2) {
-          oled.drawCircle(coordinate[index % 12].x, coordinate[index % 12].y, 8, weatherOuterColor[colorIndex]);
-          oled.drawCircle(coordinate[index % 12].x, coordinate[index % 12].y, 9, weatherOuterColor[colorIndex]);
+          oled.drawCircle(coordinate[pos % 12].x, coordinate[pos % 12].y, 9, weatherInnerColor[colorIndex]);
+          oled.drawCircle(coordinate[pos % 12].x, coordinate[pos % 12].y, 8, weatherInnerColor[colorIndex]);
+        } else {
+          oled.drawCircle(coordinate[pos % 12].x, coordinate[pos % 12].y, 9, weatherOuterColor[colorIndex]);
+          oled.drawCircle(coordinate[pos % 12].x, coordinate[pos % 12].y, 8, weatherInnerColor[colorIndex]);
         }
-      } else {
-        oled.drawFilledCircle(coordinate[index % 12].x, coordinate[index % 12].y,
-                              9, weatherInnerColor[colorIndex]);
       }
-      j++;
+      pos++;
     }
-
-    delay(5);
+    lastUpdate = time(NULL);
+    delay(100);
   }
 }
 
 void setup() {
   uint16_t result;
+  Serial.begin(115200);
   Serial2.begin(9600);
 
   oled.begin();
@@ -102,12 +107,23 @@ void setup() {
     delay(1000);
   }
 
-  dlParser.begin(apiKey, latitude, longitude);
+  dsParser.begin(apiKey, latitude, longitude);
   configTime(9 * 3600L, 0, "ntp.nict.jp", "time.google.com", "ntp.jst.mfeed.ad.jp");
   xTaskCreatePinnedToCore(printInfo, "printInfo", 2048, NULL, 1, NULL, 0);
 }
 
 void loop() {
-  dlParser.getData();
+  dsParser.getData();
+  Serial.printf("hour = %d\n", dsParser.currentHour);
+  for (int i = 0; i < 13; i++) {
+    Serial.printf("%02d: w = %2d, t = %4.1f, h = %4.1f, p = %4.1f, r = %4.1fmm\n",
+                  i,
+                  dsParser.weatherData[i].weather,
+                  dsParser.weatherData[i].temperature,
+                  dsParser.weatherData[i].humidity,
+                  dsParser.weatherData[i].precipProbability,
+                  dsParser.weatherData[i].precipIntensity);
+  }
+  Serial.printf("Free Heap = %d\n", ESP.getFreeHeap());
   delay(((300 - (time(NULL) % 300)) + 10) * 1000);
 }
