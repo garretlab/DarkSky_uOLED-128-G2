@@ -17,12 +17,12 @@ const char *longitude = "YOURLONGITUDE";
 
 int weatherInnerColor[] = {
   0xfc44, 0xf7a6, 0x8e1e, 0xffde, 0xf79e, 0xffff,
-  0xffff, 0x6bf1, 0x6bf1, 0x6bf1, 0x0000, 0x19ad,
+  0xffff, 0x6bf1, 0x6bf1, 0x6bf1, 0x0000, 0x0ad3, 0x19ad,
 };
 
 int weatherOuterColor[] = {
   0xf800, 0xe7ea, 0x19ad, 0xe77e, 0xe77e, 0xe77e,
-  0xe77e, 0x39e9, 0x39e9, 0x39e9, 0x1111, 0x8e1e,
+  0xe77e, 0x39e9, 0x39e9, 0x39e9, 0x1111, 0x8e1e, 0x8e1e,
 };
 
 struct {
@@ -62,10 +62,13 @@ void printInfo(void *arg) {
         continue;
       }
 
-      if ((dsParser.weatherData[i].weather == 2) && (dsParser.weatherData[i].precipIntensity > 3)) {
-        colorIndex = 11;
-      } else {
-        colorIndex = dsParser.weatherData[i].weather;
+      colorIndex = dsParser.weatherData[i].weather;
+      if (dsParser.weatherData[i].weather == 2) {
+        if (dsParser.weatherData[i].precipIntensity > 10) {
+          colorIndex = 12;
+        } else if (dsParser.weatherData[i].precipIntensity > 3) {
+          colorIndex = 11;
+        }
       }
 
       if (needUpdate) {
