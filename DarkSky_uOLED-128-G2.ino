@@ -212,7 +212,6 @@ void printInfo(void *arg) {
 void setup() {
   uint16_t result;
   const int circleColor = 0x29e8;
-  Serial.begin(115200);
   Serial2.begin(9600);
 
   oled.begin();
@@ -239,16 +238,5 @@ void setup() {
 
 void loop() {
   dsParser.getData();
-  Serial.printf("hour = %d\n", dsParser.currentHour);
-  for (int i = 0; i < 13; i++) {
-    Serial.printf("%02d: w = %2d, t = %4.1f, h = %4.1f, p = %4.1f, r = %4.1fmm\n",
-                  i,
-                  dsParser.weatherData[i].weather,
-                  dsParser.weatherData[i].temperature,
-                  dsParser.weatherData[i].humidity,
-                  dsParser.weatherData[i].precipProbability,
-                  dsParser.weatherData[i].precipIntensity);
-  }
-  Serial.printf("Free Heap = %d\n", ESP.getFreeHeap());
   delay(((300 - (time(NULL) % 300)) + 10) * 1000);
 }
