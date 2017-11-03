@@ -156,7 +156,6 @@ void DarkskyParser::setSubStatus(String key) {
 }
 
 void DarkskyParser::setData(String value) {
-  time_t timep;
   struct tm *currentTime;
 
   switch (status) {
@@ -166,8 +165,8 @@ void DarkskyParser::setData(String value) {
         switch (subStatus) {
           case TIME:
             if (status == CURRENTLY) {
-              timep = value.toInt();
-              currentTime = localtime(&timep);
+              lastUpdate = value.toInt();
+              currentTime = localtime(&lastUpdate);
               currentHour = currentTime->tm_hour % 12;
             };
             break;

@@ -63,6 +63,7 @@ class Stream;
 #define GOLDELOX_CMD_DISPLAY_VIDEO_FRAME_RAW    0xffba
 
 #define GOLDELOX_CMD_BEEP                       0xffda
+#define GOLDELOX_SET_BAUD_RATE                  0x000b
 
 #define GOLDELOX_CMD_GET_DISPLAY_MODEL          0x0007
 #define GOLDELOX_CMD_SCREEN_SAVER_TIMEOUT       0x000c
@@ -94,111 +95,128 @@ class Stream;
 
 #define GOLDELOX_OBJECT_COLOR                   0x02
 
+struct {
+  int16_t index;
+  long baudRate;
+} baudRateIndex[] = {
+  {22271, 110}, {9999, 300}, {4999, 600}, {2499, 1200}, {1249, 2400},
+  {624, 4800}, {312, 9600}, {207, 14400}, {155, 19200}, {95, 31250},
+  {77, 38400}, {53, 56000}, {25, 115200}, {22, 128000}, {11, 256000},
+  {10, 300000}, {8, 375000}, {6, 500000}, {4, 600000}, {0, 0},
+};
+
 class GOLDELOX {
-public:
-/*
- * Constructor
- */
-  GOLDELOX(Stream  *port);
+  public:
+    /*
+       Constructor
+    */
+    GOLDELOX(Stream  *port);
 
-  char displayModel[20];
+    char displayModel[20];
 
-/*
- *  Public methods
- */
-  void begin();
- 
-/*
- * Text Commands
- */
-  int moveCursor(uint16_t x, uint16_t y);
-  int putCharacter(char character);
-  int putString(char *string);
-  int characterWidth(char character, uint16_t *width);
-  int characterHeight(char character, uint16_t *height);
-  int textForegroundColor(uint16_t color);
-  int textBackgroundColor(uint16_t color);
-  int textWidth(uint16_t multiplier);
-  int textHeight(uint16_t multiplier);
-  int textXGap(uint16_t pixelcount);
-  int textYGap(uint16_t pixelcount);
-  int textBold(uint16_t mode);
-  int textInverse(uint16_t mode);
-  int textItalic(uint16_t mode);
-  int textOpacity(uint16_t mode);
-  int textUnderline(uint16_t mode);
-  int textAttributes(uint16_t value);
-  int setTextParameters(uint16_t function, uint16_t value);
- 
-/*
- * Graphics Commands
- */
-  int clearScreen();
-  int changeColor(uint16_t oldColor, uint16_t newColor); 
-  int drawCircle(uint16_t x, uint16_t y, uint16_t rad, uint16_t color);
-  int drawFilledCircle(uint16_t x, uint16_t y, uint16_t rad, uint16_t color);
-  int drawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
-  int drawRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
-  int drawFilledRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
-  int drawPolyline(uint16_t n, uint16_t *xArray, uint16_t *yArray, uint16_t color);
-  int drawPolygon(uint16_t n, uint16_t *xArray, uint16_t *yArray, uint16_t color);
-  int drawTriangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3, uint16_t color);
-  int calculateOrbit(uint16_t angle, uint16_t distance, uint16_t *dist);
-  int putPixel(uint16_t x, uint16_t y, uint16_t color);
-  int readPixel(uint16_t x, uint16_t y, uint16_t *color);
-  int moveOrigin(uint16_t xpos, uint16_t ypos);
-  int drawLineAndMoveOrigin(uint16_t xpos, uint16_t ypos);
-  int clipping(uint16_t value);
-  int setClipWindow(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
-  int extendClipRegion();
-  int backgroundColor(uint16_t color);
-  int outlineColor(uint16_t color);
-  int contrast(uint16_t contrast);
-  int frameDelay(uint16_t msec);
-  int linePattern(uint16_t pattern);
-  int screenMode(uint16_t mode);
-  int setGraphicsParameters(uint16_t function, uint16_t value);
-  
-/*
- * Media Commands(SD/SDHC Memory Cards)
- */
-  int mediaInit(uint16_t *value);
-  int setByteAddress(uint32_t address);
-  int setSectorAddress(uint32_t address);
-  int readByte(uint8_t *value);
-  int readWord(uint16_t *value);
-  int writeByte(uint8_t value, uint16_t *status);
-  int writeWord(uint16_t value, uint16_t *status);
-  int flushMedia(uint16_t *status);
-  int displayImageRaw(uint16_t x, uint16_t y);
-  int displayVideoRaw(uint16_t x, uint16_t y);
-  int displayVideoFrameRaw(uint16_t x, uint16_t y, uint16_t frameNumber);
+    /*
+        Public methods
+    */
+    void begin();
 
-/*
- * Sound and Tune Commands
- */
-  int beep(uint16_t note, uint16_t duration);
-  
-/*
- * System Commands
- */
-  int getDisplayModel(char *string);
-  int screenSaverTimeout(uint16_t timeout);
-  int screenSaverSpeed(uint16_t speed);
-  
-private:
-  Stream *serialPort;
-/*
- *  Private methods
- */
-  int getResponse(uint8_t response);
-  int getResponseByte(uint8_t response, uint8_t *value);
-  int getResponseWord(uint8_t response, uint16_t *value);
-  int getResponseWords(uint8_t response, uint16_t n, uint16_t *value);
-  int getResponseString(uint8_t response, char *string);
-  int sendByte(uint8_t command);
-  int sendWord(uint16_t command);
-  int setDisplayModel();
+    /*
+       Text Commands
+    */
+    int moveCursor(uint16_t x, uint16_t y);
+    int putCharacter(char character);
+    int putString(char *string);
+    int characterWidth(char character, uint16_t *width);
+    int characterHeight(char character, uint16_t *height);
+    int textForegroundColor(uint16_t color);
+    int textBackgroundColor(uint16_t color);
+    int textWidth(uint16_t multiplier);
+    int textHeight(uint16_t multiplier);
+    int textXGap(uint16_t pixelcount);
+    int textYGap(uint16_t pixelcount);
+    int textBold(uint16_t mode);
+    int textInverse(uint16_t mode);
+    int textItalic(uint16_t mode);
+    int textOpacity(uint16_t mode);
+    int textUnderline(uint16_t mode);
+    int textAttributes(uint16_t value);
+    int setTextParameters(uint16_t function, uint16_t value);
+
+    /*
+       Graphics Commands
+    */
+    int clearScreen();
+    int changeColor(uint16_t oldColor, uint16_t newColor);
+    int drawCircle(uint16_t x, uint16_t y, uint16_t rad, uint16_t color);
+    int drawFilledCircle(uint16_t x, uint16_t y, uint16_t rad, uint16_t color);
+    int drawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
+    int drawRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
+    int drawFilledRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
+    int drawPolyline(uint16_t n, uint16_t *xArray, uint16_t *yArray, uint16_t color);
+    int drawPolygon(uint16_t n, uint16_t *xArray, uint16_t *yArray, uint16_t color);
+    int drawTriangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3, uint16_t color);
+    int calculateOrbit(uint16_t angle, uint16_t distance, uint16_t *dist);
+    int putPixel(uint16_t x, uint16_t y, uint16_t color);
+    int readPixel(uint16_t x, uint16_t y, uint16_t *color);
+    int moveOrigin(uint16_t xpos, uint16_t ypos);
+    int drawLineAndMoveOrigin(uint16_t xpos, uint16_t ypos);
+    int clipping(uint16_t value);
+    int setClipWindow(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+    int extendClipRegion();
+    int backgroundColor(uint16_t color);
+    int outlineColor(uint16_t color);
+    int contrast(uint16_t contrast);
+    int frameDelay(uint16_t msec);
+    int linePattern(uint16_t pattern);
+    int screenMode(uint16_t mode);
+    int setGraphicsParameters(uint16_t function, uint16_t value);
+
+    int drawPattern(uint16_t x, uint16_t y, uint8_t nX, int8_t nY, uint8_t *pattern, uint16_t color);
+
+    /*
+       Media Commands(SD/SDHC Memory Cards)
+    */
+    int mediaInit(uint16_t *value);
+    int setByteAddress(uint32_t address);
+    int setSectorAddress(uint32_t address);
+    int readByte(uint8_t *value);
+    int readWord(uint16_t *value);
+    int writeByte(uint8_t value, uint16_t *status);
+    int writeWord(uint16_t value, uint16_t *status);
+    int flushMedia(uint16_t *status);
+    int displayImageRaw(uint16_t x, uint16_t y);
+    int displayVideoRaw(uint16_t x, uint16_t y);
+    int displayVideoFrameRaw(uint16_t x, uint16_t y, uint16_t frameNumber);
+
+    /*
+       Sound and Tune Commands
+    */
+    int beep(uint16_t note, uint16_t duration);
+
+    /*
+       Serial Communications Commands
+    */
+    int setBaudRate(int baudRate, HardwareSerial *port);
+
+    /*
+       System Commands
+    */
+    int getDisplayModel(char *string);
+    int screenSaverTimeout(uint16_t timeout);
+    int screenSaverSpeed(uint16_t speed);
+
+  private:
+    Stream *serialPort;
+    /*
+        Private methods
+    */
+    int getResponse(uint8_t response);
+    int getResponseByte(uint8_t response, uint8_t *value);
+    int getResponseWord(uint8_t response, uint16_t *value);
+    int getResponseWords(uint8_t response, uint16_t n, uint16_t *value);
+    int getResponseString(uint8_t response, char *string);
+    int sendByte(uint8_t command);
+    int sendWord(uint16_t command);
+    int setDisplayModel();
 };
 
 #endif /* GOLDELOX_H */

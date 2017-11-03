@@ -20,6 +20,7 @@ class DarkskyParser: public JsonListener {
   public:
     weatherInfo_t weatherData[DS_NUMBER_OF_HOURLY_DATA + 1];
     int currentHour;
+    time_t lastUpdate = 0;
 
     virtual void whitespace(char c);
     virtual void startDocument();
@@ -72,7 +73,6 @@ class DarkskyParser: public JsonListener {
     WiFiClientSecure client;
 
     int counter;
-    const int numData = 12;
     enum {
       S0, CURRENTLY, HOURLY, HOURLYDATA,
     } status;
