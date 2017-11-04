@@ -20,34 +20,8 @@ enum {
   CLEAR_DAY = 0, CLEAR_NIGHT = 1, CLOUDY = 2,
   RAIN = 3, HEAVY_RAIN = 4,
   SNOW = 5, SLEET = 6, WIND = 7, FOG = 8,
-  PARTLY_CLOUDY_DAY = 9, PARTLY_CLOUDY_NIGHT = 10, OTHER = 11,
-};
-
-/* main icon color corresponding to each weather */
-int weatherIconColor[] = {
-  0xfc44, 0xf7a6, 0xce79, 0x2377, 0x19ad, 0xffff, 0xce79,
-  0xce79, 0xce79, 0xffff, 0x2377, 0xce79, 0xffff,
-};
-
-/* color to show current hour */
-int weatherCurrentColor[] = {
-  0xf800, 0xf2e8, 0x9491, 0x126d, 0x126d, 0xdefb, 0xa596,
-  0xa596, 0xa596, 0xa596, 0xa596, 0xa596,
-};
-
-int weatherIconMapping[][4] = {
-  {0, -1}, /* clear-day */
-  {1, -1}, /* clear-night */
-  {2, -1}, /* cloudy */
-  {3, -1}, /* rain */
-  {4, -1}, /* heavy-rain */
-  {5, -1}, /* snow */
-  {6, 9, 10, -1}, /* sleet */
-  {7, -1}, /* wind */
-  {6, 11, -1}, /* fog */
-  {0, 8, -1}, /* partly-cloudy-day */
-  {1, 8, -1}, /* partly-cloudy-night */
-  { -1}, /* other */
+  PARTLY_CLOUDY_DAY = 9, PARTLY_CLOUDY_NIGHT = 10,
+  UNAVAILABLE = 11, OTHER = 12, INITIAL = 13,
 };
 
 /* icon difinition for each weather */
@@ -68,30 +42,30 @@ uint8_t weatherIcon[][32] = {
   },
   /* 2: cloudy */
   {
-    0x00, 0x30, 0x00, 0x78, 0x00, 0xfc, 0x18, 0xfc,
-    0x30, 0xfe, 0x7f, 0xfe, 0xff, 0xff, 0xff, 0xff,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-    0x7f, 0xfe, 0x3e, 0x7c, 0x1c, 0x38, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x0f, 0x00, 0x1f, 0x80,
+    0x1f, 0xcc, 0x3f, 0xfe, 0x3f, 0xfe, 0x7f, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xfe, 0xff, 0xfe,
+    0x7f, 0xfc, 0x3f, 0xf0, 0x00, 0x00, 0x00, 0x00,
   },
   /* 3: rain */
   {
     0x01, 0x80, 0x01, 0x80, 0x0f, 0xf0, 0x3f, 0xfc,
-    0x7f, 0xfe, 0xff, 0xff, 0xe1, 0x87, 0x81, 0x81,
-    0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80,
+    0x7f, 0xfe, 0xff, 0xff, 0xff, 0xff, 0x81, 0x83, 
+    0x81, 0x81, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80,
     0x11, 0x80, 0x09, 0x80, 0x07, 0x00, 0x00, 0x00,
   },
   /* 4: heavy rain */
   {
-    0x00, 0xf0, 0x47, 0xf8, 0x2f, 0xc0, 0x1f, 0x88,
-    0x3f, 0x24, 0x7e, 0x10, 0x7f, 0x08, 0x71, 0xc0,
-    0xe0, 0xe0, 0xc8, 0x70, 0xc4, 0x38, 0x52, 0x1c,
-    0x08, 0x8c, 0x00, 0x48, 0x00, 0x30, 0x00, 0x00,
+    0x00, 0x78, 0x47, 0xfc, 0x2f, 0xc0, 0x1f, 0x88, 
+    0x3f, 0x24, 0x7e, 0x10, 0x7f, 0x08, 0x7b, 0x80,
+    0x71, 0xc0, 0xe0, 0xe0, 0xc8, 0x70, 0xc4, 0x38,
+    0x52, 0x1c, 0x08, 0x8c, 0x00, 0x78, 0x00, 0x00,
   },
   /* 5: snow */
   {
     0x03, 0xc0, 0x0f, 0xf0, 0x19, 0x98, 0x19, 0x98,
-    0x1e, 0x78, 0x1e, 0x78, 0x0f, 0xf0, 0x1c, 0x38,
-    0x3f, 0xfc, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xfe,
+    0x1e, 0x78, 0x1e, 0x78, 0x0f, 0xf0, 0x3c, 0x3c,
+    0x7f, 0xfe, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xfe,
     0x7f, 0xfe, 0x3f, 0xfc, 0x0f, 0xf0, 0x00, 0x00,
   },
   /* 6: sleet/fog(small cloud) */
@@ -136,10 +110,45 @@ uint8_t weatherIcon[][32] = {
     0x00, 0x00, 0x00, 0x00, 0x07, 0xfe, 0x00, 0x00,
     0x1f, 0xf8, 0x00, 0x00, 0x7f, 0xe0, 0x00, 0x00,
   },
+  /* 12: unavailable */
+  {
+    0x03, 0xc0, 0x0f, 0xf0, 0x18, 0x18, 0x31, 0x8c,
+    0x61, 0x86, 0x41, 0x82, 0xc1, 0x83, 0xc1, 0x83,
+    0xc1, 0x83, 0x40, 0x02, 0x61, 0x86, 0x31, 0x8c,
+    0x18, 0x18, 0x0f, 0xf0, 0x03, 0xc0, 0x00, 0x00,
+  },
+  /* 13: other */
+  {
+    0x03, 0xc0, 0x0f, 0xf0, 0x18, 0x18, 0x33, 0xcc,
+    0x66, 0x66, 0x4c, 0x32, 0xc4, 0x23, 0xc0, 0x43,
+    0xc1, 0x83, 0x41, 0x82, 0x60, 0x06, 0x31, 0x8c,
+    0x18, 0x18, 0x0f, 0xf0, 0x03, 0xc0, 0x00, 0x00,
+  },
+};
+
+/* weather and icon mapping. displayed by the order and should be end with -1 */
+struct weatherIconMapping_t {
+  int icon[4];
+  int iconColor[4];
+  int underbarColor;
+} weatherIconMapping[] = {
+  {{0, -1}, {0xfc44, -1}, 0xf800},                        /* 0: clear-day */
+  {{1, -1}, {0xf7a6, -1}, 0xe585},                        /* 1: clear-night */
+  {{2, -1}, {0xce79, -1}, 0x9491},                        /* 2: cloudy */
+  {{3, -1}, {0x2377, -1}, 0x126d},                        /* 3: rain */
+  {{4, -1}, {0x19ad, -1}, 0x126d},                        /* 4: heavy rain */
+  {{5, -1}, {0xffff, -1}, 0xdefb},                        /* 5: snow */
+  {{6, 9, 10, -1}, {0xce79, 0xffff, 0x2377, -1}, 0xa596}, /* 6: sleet */
+  {{7, -1}, {0xce79, -1}, 0xa596},                        /* 7: wind */
+  {{6, 11, -1}, {0xce79, 0xce79, -1}, 0xa596},            /* 8: fog */
+  {{0, 8, -1}, {0xfc44, 0xce79, -1}, 0xa596},             /* 9: partly-cloudy-day */
+  {{1, 8, -1}, {0xf7a6, 0xce79, -1}, 0xa596},             /* 10: partly-cloudy-night */
+  {{12, -1}, {0xf800, -1}, 0xf800},                       /* 11: unavailable */
+  {{13, -1}, {0xffff, -1}, 0x9491},                       /* 12: other */
 };
 
 /* coordinates for each hour in the clock */
-struct {
+struct coordinate_t {
   int x;
   int y;
 } coordinate[] = {
@@ -148,6 +157,7 @@ struct {
 };
 
 /* mapping from darksky weather to this clock weather */
+/* rain is split into usual rain and heavy rain */
 int darkskyWeatherToIcon(int weather, int precipIntensity) {
   switch (weather) {
     case 0: /* clear-day */
@@ -192,71 +202,79 @@ int darkskyWeatherToIcon(int weather, int precipIntensity) {
 
 /* draw weather icon at specified hour position */
 void drawWeatherIcon(int hour, int weather) {
-  int *icon;
   /* clear old icon */
   oled.drawFilledRectangle(coordinate[hour].x - 7, coordinate[hour].y - 8,
                            coordinate[hour].x + 9, coordinate[hour].y + 8, 0x0000);
-
-  if (weather != OTHER) {
-    icon = weatherIconMapping[weather];
-    while (*icon != -1) {
-      oled.drawPattern(coordinate[hour].x - 7, coordinate[hour].y - 8, 16, 16,
-                       weatherIcon[*icon], weatherIconColor[*icon]);
-      icon++;
-    }
-  } else {
-    oled.drawFilledCircle(coordinate[hour].x, coordinate[hour].y, 7, weatherIconColor[OTHER]);
+  int n = 0;
+  while (weatherIconMapping[weather].icon[n] != -1) {
+    oled.drawPattern(coordinate[hour].x - 7, coordinate[hour].y - 8, 16, 16,
+                     weatherIcon[weatherIconMapping[weather].icon[n]],
+                     weatherIconMapping[weather].iconColor[n]);
+    n++;
   }
 }
 
 /* display routine */
 void printInfo(void *arg) {
-  int currentWeather[12];
-  int prevWeather[12] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+  int currentWeather[12], lastWeather[12];
   struct tm timeInfo;
+  time_t lastUpdate = 0;
+  int lastHour = -1, lastTemperature = 0, lastHumidity = 0;
   char s[9];
 
+/*
+  for (int i = 0; i < 12; i++) {
+    lastWeather[i] = UNAVAILABLE;
+    lastWeather[i] = INITIAL;
+  }
+*/
+  oled.textForegroundColor(0xffff);
+
   while (1) {
-    static time_t lastUpdate = 0;
-    static int lastHour = -1;
-    int needUpdate = 0;
+    time_t currentTime = time(NULL);
 
-    if ((lastUpdate < (dsParser.lastUpdate))) { /* got new weather information */
-      needUpdate = 1;
-    } else { /* no need to update weather information */
-      needUpdate = 0;
-    }
-
-    oled.textForegroundColor(0xffff);
-
-    if (needUpdate) {
-      /* update lastUpdate */
-      lastUpdate = time(NULL);
-
-      oled.moveCursor(6, 5);
-      sprintf(s, "%5.1fC", dsParser.weatherData[0].temperature);
-      oled.putString(s);
-      oled.moveCursor(5, 7);
-      oled.putString("updating");
-      oled.moveCursor(6, 9);
-      sprintf(s, "%5.1f%%", dsParser.weatherData[0].humidity);
-      oled.putString(s);
-
+    /* check if the data is valid */
+    if ((dsParser.lastUpdate == 0) || ((currentTime - dsParser.lastUpdate) > 3600)) {
+      /* no data or data is too old */
+      for (int i = 0; i < 12; i++) {
+        currentWeather[i] = UNAVAILABLE;
+      }
+    } else if (lastUpdate < dsParser.lastUpdate) {
+      /* data has been updated */
       for (int i = 0, pos = dsParser.currentHour; i < 13; i++) {
         if (i == 1) { /* skip dsParser.weatherData[1]. it is forecast data of current hour */
           continue;
         }
-
         currentWeather[pos % 12] =
           darkskyWeatherToIcon(dsParser.weatherData[i].weather, dsParser.weatherData[i].precipIntensity);
-        if (currentWeather[pos % 12] != prevWeather[pos % 12]) {
-          drawWeatherIcon(pos % 12, currentWeather[pos % 12]);
-        }
         pos++;
       }
+      lastUpdate = time(NULL);
+    }
 
-      for (int i = 0; i < 12; i++) {
-        prevWeather[i] = currentWeather[i];
+    /* draw temperature */
+    if (lastTemperature != dsParser.weatherData[0].temperature) {
+      oled.moveCursor(6, 5);
+      sprintf(s, "%5.1fC", dsParser.weatherData[0].temperature);
+      oled.putString(s);
+      lastTemperature = dsParser.weatherData[0].temperature;
+    }
+
+    /* draw humidity */
+    if (lastHumidity != dsParser.weatherData[0].humidity) {
+      oled.moveCursor(6, 9);
+      sprintf(s, "%5.1f%%", dsParser.weatherData[0].humidity);
+      oled.putString(s);
+      lastHumidity = dsParser.weatherData[0].humidity;
+    }
+
+    /* draw weather icon */
+    for (int i = 0; i < 12; i++) {
+      if (currentWeather[i] != lastWeather[i]) {
+        oled.moveCursor(5, 7);
+        oled.putString("updating");
+        drawWeatherIcon(i, currentWeather[i]);
+        lastWeather[i] = currentWeather[i];
       }
     }
 
@@ -265,16 +283,17 @@ void printInfo(void *arg) {
     oled.moveCursor(5, 7);
     oled.putString(s);
 
-    /* draw underline at current hour */
+    /* delete underline at previous hour */
     if (lastHour != timeInfo.tm_hour) {
       int t = (timeInfo.tm_hour - 1) % 12;
       oled.drawFilledRectangle(coordinate[t].x - 7, coordinate[t].y + 6,
                                coordinate[t].x + 7, coordinate[t].y + 7, 0x0000);
+      lastHour = timeInfo.tm_hour;
     }
-    oled.drawFilledRectangle(coordinate[timeInfo.tm_hour % 12].x - 7, coordinate[timeInfo.tm_hour % 12].y + 6,
-                             coordinate[timeInfo.tm_hour % 12].x + 7, coordinate[timeInfo.tm_hour % 12].y + 7,
-                             (timeInfo.tm_sec % 2) ? weatherCurrentColor[currentWeather[timeInfo.tm_hour % 12]] : 0x0000);
-    lastHour = timeInfo.tm_hour;
+    /* draw underline at current hour */
+    struct coordinate_t c = coordinate[timeInfo.tm_hour % 12];
+    oled.drawFilledRectangle(c.x - 7, c.y + 7, c.x + 7, c.y + 8,
+                             (timeInfo.tm_sec % 2) ? 0x0000 : weatherIconMapping[currentWeather[timeInfo.tm_hour % 12]].underbarColor);
     delay(100);
   }
 }
@@ -282,7 +301,6 @@ void printInfo(void *arg) {
 void setup() {
   uint16_t result;
   const int circleColor = 0x29e8;
-  Serial.begin(115200);
   Serial2.begin(9600);
 
   oled.begin();
@@ -295,6 +313,7 @@ void setup() {
   oled.textForegroundColor(0x122e);
   oled.putString("Powered by DarkSky");
 
+  xTaskCreatePinnedToCore(printInfo, "printInfo", 2048, NULL, 1, NULL, 0);
 
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -303,21 +322,9 @@ void setup() {
 
   dsParser.begin(apiKey, latitude, longitude);
   configTime(9 * 3600L, 0, "ntp.nict.jp", "time.google.com", "ntp.jst.mfeed.ad.jp");
-  xTaskCreatePinnedToCore(printInfo, "printInfo", 2048, NULL, 1, NULL, 0);
 }
 
 void loop() {
   dsParser.getData();
-  Serial.printf("hour = %d\n", dsParser.currentHour);
-  for (int i = 0; i < 13; i++) {
-    Serial.printf("%02d: w = %2d, t = %4.1f, h = %4.1f, p = %4.1f, r = %4.1fmm\n",
-                  i,
-                  dsParser.weatherData[i].weather,
-                  dsParser.weatherData[i].temperature,
-                  dsParser.weatherData[i].humidity,
-                  dsParser.weatherData[i].precipProbability,
-                  dsParser.weatherData[i].precipIntensity);
-  }
-  Serial.printf("Free Heap = %d\n", ESP.getFreeHeap());
   delay(((300 - (time(NULL) % 300)) + 10) * 1000);
 }

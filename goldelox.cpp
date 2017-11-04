@@ -33,14 +33,14 @@ int GOLDELOX::putCharacter(char character) {
   return getResponse(GOLDELOX_RESPONSE_ACK);
 }
 
-int GOLDELOX::putString(char *string) {
+int GOLDELOX::putString(const char *string) {
   int length = strlen(string);
 
   sendWord(GOLDELOX_CMD_PUT_STRING);
   for (int i = 0; i < length; i++) {
     sendByte(string[i]);
   }
-  sendByte(NULL);
+  sendByte(0x00);
 
   return getResponse(GOLDELOX_RESPONSE_ACK);
 }

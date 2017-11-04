@@ -124,7 +124,7 @@ class GOLDELOX {
     */
     int moveCursor(uint16_t x, uint16_t y);
     int putCharacter(char character);
-    int putString(char *string);
+    int putString(const char *string);
     int characterWidth(char character, uint16_t *width);
     int characterHeight(char character, uint16_t *height);
     int textForegroundColor(uint16_t color);
