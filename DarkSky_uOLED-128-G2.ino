@@ -68,10 +68,10 @@ uint8_t weatherIcon[][32] = {
   },
   /* 2: cloudy */
   {
-    0x01, 0x80, 0x03, 0xc0, 0x1b, 0xd8, 0x3f, 0xfc,
-    0x7f, 0xfe, 0x7f, 0xfe, 0xff, 0xff, 0xff, 0xff,
-    0xff, 0xff, 0x7f, 0xfe, 0x7f, 0xfe, 0x3f, 0xfc,
-    0x1b, 0xd8, 0x01, 0x80, 0x01, 0x80, 0x00, 0x00,
+    0x00, 0x30, 0x00, 0x78, 0x00, 0xfc, 0x18, 0xfc,
+    0x30, 0xfe, 0x7f, 0xfe, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x7f, 0xfe, 0x3e, 0x7c, 0x1c, 0x38, 0x00, 0x00,
   },
   /* 3: rain */
   {
@@ -103,10 +103,10 @@ uint8_t weatherIcon[][32] = {
   },
   /* 7: wind */
   {
-    0x01, 0x80, 0x02, 0x46, 0x02, 0x29, 0x00, 0x49,
-    0x7f, 0x81, 0x00, 0x3e, 0x00, 0x00, 0xff, 0xf8,
-    0x00, 0x00, 0x00, 0x3e, 0x7f, 0x81, 0x00, 0x49,
-    0x02, 0x29, 0x02, 0x46, 0x01, 0x80, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x60, 0x00, 0x90, 0x00, 0xd0,
+    0x00, 0x10, 0x19, 0xe0, 0x24, 0x0c, 0x32, 0x12,
+    0x04, 0x1a, 0x78, 0x02, 0x03, 0xfc, 0x00, 0x00,
+    0x7f, 0xfc, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   },
   /* 8: partly cloudy(cloud part) */
   {
@@ -218,15 +218,11 @@ void printInfo(void *arg) {
 
   while (1) {
     static time_t lastUpdate = 0;
+    static int lastHour = -1;
     int needUpdate = 0;
 
     if ((lastUpdate < (dsParser.lastUpdate))) { /* got new weather information */
       needUpdate = 1;
-    } else if ((timeInfo.tm_hour % 12) != dsParser.currentHour) { /* current hour changed */
-      needUpdate = 1;
-      /* clear underline of previous hour */
-      oled.drawFilledRectangle(coordinate[dsParser.currentHour].x - 7, coordinate[dsParser.currentHour].y + 6,
-                               coordinate[dsParser.currentHour].x + 7, coordinate[dsParser.currentHour].y + 7, 0x0000);
     } else { /* no need to update weather information */
       needUpdate = 0;
     }
@@ -270,9 +266,15 @@ void printInfo(void *arg) {
     oled.putString(s);
 
     /* draw underline at current hour */
+    if (lastHour != timeInfo.tm_hour) {
+      int t = (timeInfo.tm_hour - 1) % 12;
+      oled.drawFilledRectangle(coordinate[t].x - 7, coordinate[t].y + 6,
+                               coordinate[t].x + 7, coordinate[t].y + 7, 0x0000);
+    }
     oled.drawFilledRectangle(coordinate[timeInfo.tm_hour % 12].x - 7, coordinate[timeInfo.tm_hour % 12].y + 6,
                              coordinate[timeInfo.tm_hour % 12].x + 7, coordinate[timeInfo.tm_hour % 12].y + 7,
                              (timeInfo.tm_sec % 2) ? weatherCurrentColor[currentWeather[timeInfo.tm_hour % 12]] : 0x0000);
+    lastHour = timeInfo.tm_hour;
     delay(100);
   }
 }
@@ -280,9 +282,9 @@ void printInfo(void *arg) {
 void setup() {
   uint16_t result;
   const int circleColor = 0x29e8;
+  Serial.begin(115200);
   Serial2.begin(9600);
 
-  // oled.setBaudRate(115200, &Serial2);
   oled.begin();
   oled.clearScreen();
 
@@ -306,5 +308,16 @@ void setup() {
 
 void loop() {
   dsParser.getData();
+  Serial.printf("hour = %d\n", dsParser.currentHour);
+  for (int i = 0; i < 13; i++) {
+    Serial.printf("%02d: w = %2d, t = %4.1f, h = %4.1f, p = %4.1f, r = %4.1fmm\n",
+                  i,
+                  dsParser.weatherData[i].weather,
+                  dsParser.weatherData[i].temperature,
+                  dsParser.weatherData[i].humidity,
+                  dsParser.weatherData[i].precipProbability,
+                  dsParser.weatherData[i].precipIntensity);
+  }
+  Serial.printf("Free Heap = %d\n", ESP.getFreeHeap());
   delay(((300 - (time(NULL) % 300)) + 10) * 1000);
 }

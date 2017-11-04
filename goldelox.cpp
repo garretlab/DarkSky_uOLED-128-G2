@@ -511,6 +511,7 @@ int GOLDELOX::setBaudRate(int baudRate, HardwareSerial *port) {
       sendWord(GOLDELOX_SET_BAUD_RATE);
       sendWord(baudRateIndex[i].index);
       delay(100);
+      port->end();
       port->begin(baudRate);
       // retval = getResponse(GOLDELOX_RESPONSE_ACK);
       //return retval;
