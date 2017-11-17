@@ -218,7 +218,7 @@ void drawPrecipProbability(int hour, int precipProbability) {
   /* delete old precipitation probability */
   oled.drawRectangle(coordinate[hour].x - 1 , coordinate[hour].y,
                      coordinate[hour].x + 1, coordinate[hour].y + 12, 0x0000);
-  for (int i = 0; i < (precipProbability / 20); i ++) {
+  for (int i = 0; i < ((precipProbability + 10) / 20); i ++) {
     oled.drawFilledRectangle(coordinate[hour].x - 1, coordinate[hour].y + 12 - 3 * i,
                              coordinate[hour].x + 1, coordinate[hour].y + 13 - 3 * i,
                              0x2377);
