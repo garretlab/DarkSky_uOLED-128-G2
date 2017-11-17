@@ -15,6 +15,11 @@ const char *apiKey = "YOURAPIKEY";
 const char *latitude = "YOURLATITUDE";
 const char *longitude = "YOURLONGITUDE";
 
+const char *tz = "YOURTIMEZONE";
+const char *ntpServer1 = "NTPSERVER1";
+const char *ntpServer2 = "NTPSERVER2";
+const char *ntpServer3 = "NTPSERVER3";
+
 /* weather definition */
 enum {
   CLEAR_DAY = 0, CLEAR_NIGHT = 1, CLOUDY = 2,
@@ -316,6 +321,7 @@ void printInfo(void *arg) {
 
 void setup() {
   const int circleColor = 0x29e8;
+  Serial.begin(115200);
   Serial2.begin(9600);
 
   oled.begin();
@@ -336,10 +342,21 @@ void setup() {
   }
 
   dsParser.begin(apiKey, latitude, longitude);
-  configTime(9 * 3600L, 0, "ntp.nict.jp", "time.google.com", "ntp.jst.mfeed.ad.jp");
+  configTzTime(tz, ntpServer1, ntpServer2, ntpServer3);
 }
 
 void loop() {
   dsParser.getData();
+  Serial.printf("hour = %d\n", dsParser.currentHour);
+  for (int i = 0; i < 14; i++) {
+    Serial.printf("%02d: w = %2d, t = %4.1fC, h = %4.1f%%, p = %4d%%, r = %4.1fmm\n",
+                  i,
+                  dsParser.weatherData[i].weather,
+                  dsParser.weatherData[i].temperature,
+                  dsParser.weatherData[i].humidity,
+                  dsParser.weatherData[i].precipProbability,
+                  dsParser.weatherData[i].precipIntensity);
+  }
+  Serial.printf("Free Heap = %d\n", ESP.getFreeHeap());
   delay(((300 - (time(NULL) % 300)) + 10) * 1000);
 }
