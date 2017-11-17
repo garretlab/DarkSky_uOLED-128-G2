@@ -233,7 +233,7 @@ void drawPrecipProbability(int hour, int precipProbability) {
 /* display routine */
 void printInfo(void *arg) {
   int currentWeather[12], lastWeather[12];
-  int currentPrecipProbability[12];
+  int currentPrecipProbability[12], lastPrecipProbability[12];
   struct tm timeInfo;
   time_t lastUpdate = 0;
   int lastHour = -1;
@@ -272,10 +272,13 @@ void printInfo(void *arg) {
         oled.moveCursor(5, 7);
         oled.putString("updating"); /* it may take a long time so hide current time */
         drawWeatherIcon(i, currentWeather[i]);
+        lastWeather[i] = currentWeather[i];
+      }
+      if (currentPrecipProbability[i] != lastPrecipProbability[i]) {
         if (currentWeather[i] < UNAVAILABLE) {
           drawPrecipProbability(i, currentPrecipProbability[i]);
+          lastPrecipProbability[i] = currentPrecipProbability[i];
         }
-        lastWeather[i] = currentWeather[i];
       }
     }
 
@@ -297,6 +300,7 @@ void printInfo(void *arg) {
       int t = (timeInfo.tm_hour + 11) % 12;
       currentWeather[t] =
         darkskyWeatherToIcon(dsParser.weatherData[13].weather, dsParser.weatherData[13].precipIntensity);
+      currentPrecipProbability[t] = dsParser.weatherData[13].precipProbability;
       /* delete underline */
       oled.drawFilledRectangle(coordinate[t].x, coordinate[t].y + 14,
                                coordinate[t].x + 15, coordinate[t].y + 15, 0x0000);
@@ -321,7 +325,6 @@ void printInfo(void *arg) {
 
 void setup() {
   const int circleColor = 0x29e8;
-  Serial.begin(115200);
   Serial2.begin(9600);
 
   oled.begin();
@@ -347,16 +350,5 @@ void setup() {
 
 void loop() {
   dsParser.getData();
-  Serial.printf("hour = %d\n", dsParser.currentHour);
-  for (int i = 0; i < 14; i++) {
-    Serial.printf("%02d: w = %2d, t = %4.1fC, h = %4.1f%%, p = %4d%%, r = %4.1fmm\n",
-                  i,
-                  dsParser.weatherData[i].weather,
-                  dsParser.weatherData[i].temperature,
-                  dsParser.weatherData[i].humidity,
-                  dsParser.weatherData[i].precipProbability,
-                  dsParser.weatherData[i].precipIntensity);
-  }
-  Serial.printf("Free Heap = %d\n", ESP.getFreeHeap());
   delay(((300 - (time(NULL) % 300)) + 10) * 1000);
 }
