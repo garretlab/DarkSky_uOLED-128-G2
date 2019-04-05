@@ -5,7 +5,6 @@
 
 DarkskyParser dsParser;
 
-HardwareSerial Serial2(2);
 GOLDELOX oled(&Serial2);
 
 const char *ssid = "YOURSSID";
