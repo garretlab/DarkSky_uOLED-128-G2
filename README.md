@@ -1,5 +1,11 @@
 # DarkSky_uOLED-128-G2
+
+ESP-WROOM-32を使った[天気予報付き時計](https://garretlab.web.fc2.com/arduino/esp32/make/darksky_oled_graphic_display/index.html)のソースコードです。
+
 Display weather information from Dark Sky API on uOLED-128-G2 using ESP-WROOM-32 and Arduino IDE.
+The article can be found at 
+https://garretlab.web.fc2.com/arduino/esp32/make/darksky_oled_graphic_display/index.html
+in Japanese.
 
 You need to change the code below to suit your environment.
 
