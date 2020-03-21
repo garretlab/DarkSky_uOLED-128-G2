@@ -220,4 +220,3 @@ class GOLDELOX {
 };
 
 #endif /* GOLDELOX_H */
-

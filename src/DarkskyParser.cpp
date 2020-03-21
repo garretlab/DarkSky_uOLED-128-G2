@@ -175,6 +175,7 @@ void DarkskyParser::setData(String value) {
             for (int i = 0; i < 10; i++) {
               if (value == weatherName[i]) {
                 weatherData[counter].weather = i;
+                break;
               }
             }
             break;
@@ -182,7 +183,7 @@ void DarkskyParser::setData(String value) {
             weatherData[counter].precipIntensity = value.toFloat();
             break;
           case PRECIPPROBABILITY:
-            weatherData[counter].precipProbability = value.toFloat() * 100;
+            weatherData[counter].precipProbability = (int)(value.toFloat() * 100);
             break;
           case TEMPERATURE:
             weatherData[counter].temperature = value.toFloat();
@@ -196,6 +197,8 @@ void DarkskyParser::setData(String value) {
           default:
             break;
         }
+      default:
+        break;
       }
   }
 }

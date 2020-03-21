@@ -295,6 +295,7 @@ int GOLDELOX::readPixel(uint16_t x, uint16_t y, uint16_t *color) {
   sendWord(y);
 
   getResponseWord(GOLDELOX_RESPONSE_ACK, color);
+  return true;
 }
 
 int GOLDELOX::moveOrigin(uint16_t xpos, uint16_t ypos) {
@@ -403,6 +404,7 @@ int GOLDELOX::drawPattern(uint16_t x, uint16_t y, uint8_t nX, int8_t nY, uint8_t
       }
     }
   }
+  return true;
 }
 
 /*
@@ -548,11 +550,13 @@ int GOLDELOX::screenSaverSpeed(uint16_t speed) {
 */
 int GOLDELOX::sendByte(uint8_t command) {
   serialPort->write((command));
+  return true;
 }
 
 int GOLDELOX::sendWord(uint16_t command) {
   serialPort->write((command >> 8));
   serialPort->write((command & 0xff));
+  return true;
 }
 
 int GOLDELOX::getResponse(uint8_t response) {
@@ -570,7 +574,7 @@ int GOLDELOX::getResponseByte(uint8_t response, uint8_t *value) {
   } buffer;
   int result;
 
-  if (result = getResponse(response)) {
+  if ((result = getResponse(response))) {
     while (serialPort->available() < 2) {
       delay(2);
     }
@@ -589,7 +593,7 @@ int GOLDELOX::getResponseWord(uint8_t response, uint16_t *value) {
   } buffer;
   int result;
 
-  if (result = getResponse(response)) {
+  if ((result = getResponse(response))) {
     while (serialPort->available() < 2) {
       delay(2);
     }
@@ -609,7 +613,7 @@ int GOLDELOX::getResponseWords(uint8_t response, uint16_t n, uint16_t *value) {
   int result;
   int nbytes = 2 * n;
 
-  if (result = getResponse(response)) {
+  if ((result = getResponse(response))) {
     while (serialPort->available() < nbytes) {
       delay(2);
     }
@@ -629,7 +633,7 @@ int GOLDELOX::getResponseString(uint8_t response, char *string) {
   uint16_t value;
   int result;
 
-  if (result = getResponseWord(response, &value)) {
+  if ((result = getResponseWord(response, &value))) {
     serialPort->readBytes(string, value);
     string[value] = '\0';
   }
